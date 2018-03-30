@@ -24,6 +24,7 @@ import com.grarak.kerneladiutor.fragments.ApplyOnBootFragment;
 import com.grarak.kerneladiutor.fragments.BaseFragment;
 import com.grarak.kerneladiutor.fragments.RecyclerViewFragment;
 import com.grarak.kerneladiutor.utils.kernel.gpu.AdrenoIdler;
+import com.grarak.kerneladiutor.utils.kernel.gpu.AdrenoBoost;
 import com.grarak.kerneladiutor.utils.kernel.gpu.GPUFreq;
 import com.grarak.kerneladiutor.utils.kernel.gpu.SimpleGPU;
 import com.grarak.kerneladiutor.views.recyclerview.CardView;

@@ -390,6 +390,17 @@
   <string name="idle_wait_summary">Número de eventos para esperar antes de disminuir las frecuencias. Los eventos de idlewait\'th antes del actual deben ser todos inactivos antes de que Adreno Idler disminuya las frecuencias. Esta implementación se usa para prevenir micro-lags en el desplazamiento al jugar a juegos. Adreno Idler tratará de reducir la frecuencia más activamente si se establece a un valor inferior.</string>
   <string name="workload">Carga de trabajo</string>
   <string name="workload_summary">Adreno Idler tratará de reducir la frecuencia más activamente si éste se establece en un valor más alto.</string>
+  <string name="gov_tunables">Ajustes de Gobernador</string>
+  <string name="gpu_voltage">Control Voltaje GPU</string>
+  <string name="gpu_power_policy_card">Control GPU Power Policy</string>
+  <string name="gpu_power_policy">Control Mali Power Policy</string>
+  <string name="gpu_power_policy_summary">COARSE DEMAND es para controlar solamente la energía externa (PMU para G3D). Es mejor en ahorro de energía y rendimiento. COARSE DEMAND apaga la GPU en caso de no haber trabajo durante 100ms y la enciende en cuanto entra un nuevo trabajo. Por defecto: COARSE DEMAND</string>
+  <string name="gpu_adreno_boost_title">Adreno Boost</string>
+  <string name="gpu_adreno_boost_summary">Ajuste el valor para Adreno Boost</string>
+  <string name="gpu_adreno_boost_off">0 Desactivado</string>
+  <string name="gpu_adreno_boost_low">1 Bajo</string>
+  <string name="gpu_adreno_boost_medium">2 Medio</string>
+  <string name="gpu_adreno_boost_high">3 Alto</string>
   <!-- Screen -->
   <string name="screen_color">Color de la pantalla</string>
   <string name="red">Rojo</string>
