@@ -34,13 +34,13 @@ import java.util.List;
  */
 public class Sound {
 
-    private static Sound sInstance;
+    private static Sound sIOInstance;
 
     public static Sound getInstance() {
-        if (sInstance == null) {
-            sInstance = new Sound();
+        if (sIOInstance == null) {
+            sIOInstance = new Sound();
         }
-        return sInstance;
+        return sIOInstance;
     }
 
     private static final String SOUND_CONTROL_ENABLE = "/sys/module/snd_soc_wcd9320/parameters/enable_fs";
@@ -394,14 +394,10 @@ public class Sound {
     }
 
     private void fauxRun(String value, String path, String id, Context context) {
-        String[] values = value.split(" ");
-        int left = Utils.strToInt(values[0]);
-        int right = 0;
-        if (values.length > 1) {
-            right = Utils.strToInt(values[1]);
-        }
-
-        long checksum = getChecksum(left, right);
+        long checksum = value.contains(" ") ?
+                getChecksum(Utils.strToInt(value.split(" ")[0]),
+                        Utils.strToInt(value.split(" ")[1])) :
+                getChecksum(Utils.strToInt(value), 0);
         run(Control.write(value + " " + checksum, path), id, context);
         run(Control.write(value, path), id + "nochecksum", context);
     }

@@ -28,14 +28,13 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Created by willi on 30.12.15.
  */
 public class RootUtils {
 
-    private static SU sInstance;
+    private static SU su;
 
     public static boolean rootAccess() {
         SU su = getSU();
@@ -96,8 +95,8 @@ public class RootUtils {
     }
 
     public static void closeSU() {
-        if (sInstance != null) sInstance.close();
-        sInstance = null;
+        if (su != null) su.close();
+        su = null;
     }
 
     public static String runCommand(String command) {
@@ -105,13 +104,13 @@ public class RootUtils {
     }
 
     public static SU getSU() {
-        if (sInstance == null || sInstance.closed || sInstance.denied) {
-            if (sInstance != null && !sInstance.closed) {
-                sInstance.close();
+        if (su == null || su.closed || su.denied) {
+            if (su != null && !su.closed) {
+                su.close();
             }
-            sInstance = new SU();
+            su = new SU();
         }
-        return sInstance;
+        return su;
     }
 
     /*
@@ -128,8 +127,6 @@ public class RootUtils {
         private boolean closed;
         public boolean denied;
         private boolean firstTry;
-
-        private ReentrantLock mLock = new ReentrantLock();
 
         public SU() {
             this(true, null);
@@ -155,79 +152,71 @@ public class RootUtils {
             }
         }
 
-        public String runCommand(final String command) {
-            if (closed) return "";
-            try {
-                mLock.lock();
+        public synchronized String runCommand(final String command) {
+            synchronized (this) {
+                try {
+                    StringBuilder sb = new StringBuilder();
+                    String callback = "/shellCallback/";
+                    mWriter.write(command + "\necho " + callback + "\n");
+                    mWriter.flush();
 
-                StringBuilder sb = new StringBuilder();
-                String callback = "/shellCallback/";
-                mWriter.write(command + "\n");
-                mWriter.write("echo " + callback + "\n");
-                mWriter.flush();
-
-                String line;
-                while ((line = mReader.readLine()) != null) {
-                    if (line.equals(callback)) {
-                        break;
+                    int i;
+                    char[] buffer = new char[256];
+                    while (true) {
+                        sb.append(buffer, 0, mReader.read(buffer));
+                        if ((i = sb.indexOf(callback)) > -1) {
+                            sb.delete(i, i + callback.length());
+                            break;
+                        }
                     }
-                    sb.append(line).append("\n");
-                }
-                firstTry = false;
-                if (mTag != null) {
-                    Log.i(mTag, "run: " + command + " output: " + sb.toString().trim());
-                }
+                    firstTry = false;
+                    if (mTag != null) {
+                        Log.i(mTag, "run: " + command + " output: " + sb.toString().trim());
+                    }
 
-                return sb.toString().trim();
-            } catch (IOException e) {
-                closed = true;
-                e.printStackTrace();
-                if (firstTry) denied = true;
-            } catch (ArrayIndexOutOfBoundsException e) {
-                denied = true;
-            } catch (Exception e) {
-                e.printStackTrace();
-                denied = true;
-            } finally {
-                mLock.unlock();
+                    return sb.toString().trim();
+                } catch (IOException e) {
+                    closed = true;
+                    e.printStackTrace();
+                    if (firstTry) denied = true;
+                } catch (ArrayIndexOutOfBoundsException e) {
+                    denied = true;
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    denied = true;
+                }
+                return null;
             }
-            return null;
         }
 
         public void close() {
             try {
-                try {
-                    mLock.lock();
-                    if (mWriter != null) {
-                        mWriter.write("exit\n");
-                        mWriter.flush();
+                if (mWriter != null) {
+                    mWriter.write("exit\n");
+                    mWriter.flush();
 
-                        mWriter.close();
-                    }
-                    if (mReader != null) {
-                        mReader.close();
-                    }
-                } catch (IOException e) {
+                    mWriter.close();
+                }
+                if (mReader != null) {
+                    mReader.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            if (mProcess != null) {
+                try {
+                    mProcess.waitFor();
+                } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
 
-                if (mProcess != null) {
-                    try {
-                        mProcess.waitFor();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-
-                    mProcess.destroy();
-                    if (mTag != null) {
-                        Log.i(mTag, String.format("%s closed: %d",
-                                mRoot ? "SU" : "SH", mProcess.exitValue()));
-                    }
+                mProcess.destroy();
+                if (mTag != null) {
+                    Log.i(mTag, String.format("%s closed: %d", mRoot ? "SU" : "SH", mProcess.exitValue()));
                 }
-            } finally {
-                mLock.unlock();
-                closed = true;
             }
+            closed = true;
         }
 
     }

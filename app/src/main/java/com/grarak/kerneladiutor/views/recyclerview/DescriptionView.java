@@ -50,21 +50,27 @@ public class DescriptionView extends RecyclerViewItem {
     @Override
     public void onCreateView(View view) {
         mRootView = view;
-        mImageView = view.findViewById(R.id.image);
-        mTitleView = view.findViewById(R.id.title);
-        mSummaryView = view.findViewById(R.id.summary);
+        mImageView = (AppCompatImageView) view.findViewById(R.id.image);
+        mTitleView = (AppCompatTextView) view.findViewById(R.id.title);
+        mSummaryView = (AppCompatTextView) view.findViewById(R.id.summary);
 
         if (mTitleView != null) {
-            mTitleView.setOnFocusChangeListener((v, hasFocus) -> {
-                if (hasFocus) {
-                    mRootView.requestFocus();
+            mTitleView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+                @Override
+                public void onFocusChange(View v, boolean hasFocus) {
+                    if (hasFocus) {
+                        mRootView.requestFocus();
+                    }
                 }
             });
         }
         if (mSummaryView != null) {
-            mSummaryView.setOnFocusChangeListener((v, hasFocus) -> {
-                if (hasFocus) {
-                    mRootView.requestFocus();
+            mSummaryView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+                @Override
+                public void onFocusChange(View v, boolean hasFocus) {
+                    if (hasFocus) {
+                        mRootView.requestFocus();
+                    }
                 }
             });
         }
@@ -125,9 +131,12 @@ public class DescriptionView extends RecyclerViewItem {
                 && mSummaryView != null) {
             mTitleView.setTextIsSelectable(false);
             mSummaryView.setTextIsSelectable(false);
-            mRootView.setOnClickListener(v -> {
-                if (getOnItemClickListener() != null) {
-                    getOnItemClickListener().onClick(DescriptionView.this);
+            mRootView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (getOnItemClickListener() != null) {
+                        getOnItemClickListener().onClick(DescriptionView.this);
+                    }
                 }
             });
         }

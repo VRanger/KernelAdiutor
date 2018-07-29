@@ -84,7 +84,12 @@ public class ApplyOnBootService extends Service {
             Utils.setupStartActivity(this);
         }
 
-        boolean applyOnBoot = ApplyOnBoot.apply(this, this::stopSelf);
+        boolean applyOnBoot = ApplyOnBoot.apply(this, new ApplyOnBoot.ApplyOnBootListener() {
+            @Override
+            public void onFinish() {
+                stopSelf();
+            }
+        });
 
         if (!applyOnBoot) {
             if (messenger != null) {

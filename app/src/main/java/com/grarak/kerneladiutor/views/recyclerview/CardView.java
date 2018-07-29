@@ -112,23 +112,29 @@ public class CardView extends RecyclerViewItem {
         initLayouts(view);
 
         mMenuButton = view.findViewById(R.id.menu_button);
-        mMenuButton.setOnClickListener(v -> {
-            if (mPopupMenu != null) {
-                mPopupMenu.show();
+        mMenuButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mPopupMenu != null) {
+                    mPopupMenu.show();
+                }
             }
         });
 
         mLayoutParent.setVisibility(mShowLayout ? View.VISIBLE : View.GONE);
         mArrow.setRotationX(mShowLayout ? 0 : 180);
 
-        mTitleParent.setOnClickListener(v -> {
-            if (mLayoutParent.getVisibility() == View.VISIBLE) {
-                mLayoutHeight = mLayoutParent.getHeight();
-            }
-            if (mLayoutAnimator == null) {
-                mShowLayout = !mShowLayout;
-                animateLayout(!mShowLayout);
-                viewChanged();
+        mTitleParent.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mLayoutParent.getVisibility() == View.VISIBLE) {
+                    mLayoutHeight = mLayoutParent.getHeight();
+                }
+                if (mLayoutAnimator == null) {
+                    mShowLayout = !mShowLayout;
+                    animateLayout(!mShowLayout);
+                    viewChanged();
+                }
             }
         });
         super.onCreateView(view);
@@ -137,8 +143,12 @@ public class CardView extends RecyclerViewItem {
     private void animateLayout(final boolean collapse) {
         mArrow.animate().rotationX(collapse ? 180 : 0).setDuration(500).start();
         mLayoutAnimator = ValueAnimator.ofInt(collapse ? mLayoutHeight : 0, collapse ? 0 : mLayoutHeight);
-        mLayoutAnimator.addUpdateListener(animation
-                -> setLayoutParentHeight((int) animation.getAnimatedValue()));
+        mLayoutAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                setLayoutParentHeight((int) animation.getAnimatedValue());
+            }
+        });
         mLayoutAnimator.addListener(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationStart(Animator animation) {
@@ -283,8 +293,12 @@ public class CardView extends RecyclerViewItem {
             mOnMenuListener.onMenuReady(this, mPopupMenu);
         }
         if (mRootView != null && getOnItemClickListener() != null) {
-            mRootView.setOnClickListener(view
-                    -> getOnItemClickListener().onClick(CardView.this));
+            mRootView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    getOnItemClickListener().onClick(CardView.this);
+                }
+            });
         }
     }
 

@@ -75,16 +75,24 @@ public class IOFragment extends RecyclerViewFragment {
             scheduler.setSummary(getString(R.string.scheduler_summary));
             scheduler.setItems(mIO.getSchedulers(storage));
             scheduler.setItem(mIO.getScheduler(storage));
-            scheduler.setOnItemSelected((selectView, position, item)
-                    -> mIO.setScheduler(storage, item, getActivity()));
+            scheduler.setOnItemSelected(new SelectView.OnItemSelected() {
+                @Override
+                public void onItemSelected(SelectView selectView, int position, String item) {
+                    mIO.setScheduler(storage, item, getActivity());
+                }
+            });
 
             views.add(scheduler);
 
             DescriptionView tunable = new DescriptionView();
             tunable.setTitle(getString(R.string.scheduler_tunable));
             tunable.setSummary(getString(R.string.scheduler_tunable_summary));
-            tunable.setOnItemClickListener(item
-                    -> showTunables(mIO.getScheduler(storage), mIO.getIOSched(storage)));
+            tunable.setOnItemClickListener(new RecyclerViewItem.OnItemClickListener() {
+                @Override
+                public void onClick(RecyclerViewItem item) {
+                    showTunables(mIO.getScheduler(storage), mIO.getIOSched(storage));
+                }
+            });
 
             views.add(tunable);
         }
@@ -117,8 +125,12 @@ public class IOFragment extends RecyclerViewFragment {
             rotational.setTitle(getString(R.string.rotational));
             rotational.setSummary(getString(R.string.rotational_summary));
             rotational.setChecked(mIO.isRotationalEnabled(storage));
-            rotational.addOnSwitchListener((switchView, isChecked)
-                    -> mIO.enableRotational(storage, isChecked, getActivity()));
+            rotational.addOnSwitchListener(new SwitchView.OnSwitchListener() {
+                @Override
+                public void onChanged(SwitchView switchView, boolean isChecked) {
+                    mIO.enableRotational(storage, isChecked, getActivity());
+                }
+            });
 
             views.add(rotational);
         }
@@ -128,8 +140,12 @@ public class IOFragment extends RecyclerViewFragment {
             iostats.setTitle(getString(R.string.iostats));
             iostats.setSummary(getString(R.string.iostats_summary));
             iostats.setChecked(mIO.isIOStatsEnabled(storage));
-            iostats.addOnSwitchListener((switchView, isChecked)
-                    -> mIO.enableIOstats(storage, isChecked, getActivity()));
+            iostats.addOnSwitchListener(new SwitchView.OnSwitchListener() {
+                @Override
+                public void onChanged(SwitchView switchView, boolean isChecked) {
+                    mIO.enableIOstats(storage, isChecked, getActivity());
+                }
+            });
 
             views.add(iostats);
         }
@@ -139,8 +155,12 @@ public class IOFragment extends RecyclerViewFragment {
             addRandom.setTitle(getString(R.string.add_random));
             addRandom.setSummary(getString(R.string.add_random_summary));
             addRandom.setChecked(mIO.isAddRandomEnabled(storage));
-            addRandom.addOnSwitchListener((switchView, isChecked)
-                    -> mIO.enableAddRandom(storage, isChecked, getActivity()));
+            addRandom.addOnSwitchListener(new SwitchView.OnSwitchListener() {
+                @Override
+                public void onChanged(SwitchView switchView, boolean isChecked) {
+                    mIO.enableAddRandom(storage, isChecked, getActivity());
+                }
+            });
 
             views.add(addRandom);
         }

@@ -51,41 +51,44 @@ public class DashClock extends DashClockExtension {
                     .clickIntent(intent);
         }
         if (!mRunning) {
-            new Thread(() -> {
-                while (true) {
-                    try {
-                        StringBuilder message = new StringBuilder();
-                        if (RootUtils.rootAccess()) {
-                            CPUFreq cpuFreq = CPUFreq.getInstance(DashClock.this);
-                            GPUFreq gpuFreq = GPUFreq.getInstance();
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    while (true) {
+                        try {
+                            StringBuilder message = new StringBuilder();
+                            if (RootUtils.rootAccess()) {
+                                CPUFreq cpuFreq = CPUFreq.getInstance(DashClock.this);
+                                GPUFreq gpuFreq = GPUFreq.getInstance();
 
-                            StringBuilder cpu = new StringBuilder();
-                            for (int i = 0; i < cores; i++) {
-                                int freq = cpuFreq.getCurFreq(i) / 1000;
-                                if (i != 0) cpu.append(" | ");
-                                cpu.append(freq == 0 ? getString(R.string.offline) : freq);
-                            }
-                            if (cpu.length() > 0) {
-                                message.append(getString(R.string.cpu)).append(": ")
-                                        .append(cpu.toString()).append("\n");
-                            }
-                            message.append(getString(R.string.cpu_governor)).append(": ")
-                                    .append(cpuFreq.getGovernor(false)).append("\n");
+                                StringBuilder cpu = new StringBuilder();
+                                for (int i = 0; i < cores; i++) {
+                                    int freq = cpuFreq.getCurFreq(i) / 1000;
+                                    if (i != 0) cpu.append(" | ");
+                                    cpu.append(freq == 0 ? getString(R.string.offline) : freq);
+                                }
+                                if (cpu.length() > 0) {
+                                    message.append(getString(R.string.cpu)).append(": ")
+                                            .append(cpu.toString()).append("\n");
+                                }
+                                message.append(getString(R.string.cpu_governor)).append(": ")
+                                        .append(cpuFreq.getGovernor(false)).append("\n");
 
-                            if (gpuFreq.hasCurFreq()) {
-                                message.append(getString(R.string.gpu)).append(": ")
-                                        .append(gpuFreq.getCurFreq() / 1000000)
-                                        .append(getString(R.string.mhz));
+                                if (gpuFreq.hasCurFreq()) {
+                                    message.append(getString(R.string.gpu)).append(": ")
+                                            .append(gpuFreq.getCurFreq() / 1000000)
+                                            .append(getString(R.string.mhz));
+                                }
+                            } else {
+                                message.append(getString(R.string.no_root));
                             }
-                        } else {
-                            message.append(getString(R.string.no_root));
+
+                            publishUpdate(extensionData.status(status).expandedBody(message.toString()));
+                            Thread.sleep(5000);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            break;
                         }
-
-                        publishUpdate(extensionData.status(status).expandedBody(message.toString()));
-                        Thread.sleep(5000);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        break;
                     }
                 }
             }).start();

@@ -48,8 +48,8 @@ public class EditTextView extends RecyclerViewItem {
 
     @Override
     public void onCreateView(View view) {
-        mTextView = view.findViewById(R.id.title);
-        mEditTextView = view.findViewById(R.id.edittext);
+        mTextView = (TextView) view.findViewById(R.id.title);
+        mEditTextView = (AppCompatEditText) view.findViewById(R.id.edittext);
 
         mEditTextView.addTextChangedListener(new TextWatcher() {
             @Override

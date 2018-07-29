@@ -19,6 +19,7 @@
  */
 package com.grarak.kerneladiutor.activities;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ShortcutInfo;
 import android.content.pm.ShortcutManager;
@@ -27,9 +28,9 @@ import android.graphics.drawable.Icon;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
@@ -43,6 +44,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.SubMenu;
+import android.view.View;
 
 import com.grarak.kerneladiutor.R;
 import com.grarak.kerneladiutor.fragments.BaseFragment;
@@ -106,6 +108,7 @@ import com.grarak.kerneladiutor.views.AdNativeExpress;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -120,9 +123,10 @@ public class NavigationActivity extends BaseActivity
     private ArrayList<NavigationFragment> mFragments = new ArrayList<>();
     private Map<Integer, Class<? extends Fragment>> mActualFragments = new LinkedHashMap<>();
 
+    private Handler mHandler = new Handler();
     private DrawerLayout mDrawer;
     private NavigationView mNavigationView;
-    private long mLastTimeBackbuttonPressed;
+    private boolean mExit;
 
     private int mSelection;
     private boolean mLicenseDialog = true;
@@ -251,19 +255,28 @@ public class NavigationActivity extends BaseActivity
         int result = getIntent().getIntExtra("result", -1);
 
         if ((result == 1 || result == 2) && mLicenseDialog) {
-            ViewUtils.dialogBuilder(getString(R.string.license_invalid),
-                    null,
-                    (dialog, which) -> {
-                    },
-                    dialog -> mLicenseDialog = false, this)
-                    .show();
+            ViewUtils.dialogBuilder(getString(R.string.license_invalid), null,
+                    new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                        }
+                    }, new DialogInterface.OnDismissListener() {
+                        @Override
+                        public void onDismiss(DialogInterface dialog) {
+                            mLicenseDialog = false;
+                        }
+                    }, this).show();
         } else if (result == 3 && mLicenseDialog) {
-            ViewUtils.dialogBuilder(getString(R.string.pirated),
-                    null,
-                    (dialog, which) -> {
-                    },
-                    dialog -> mLicenseDialog = false, this)
-                    .show();
+            ViewUtils.dialogBuilder(getString(R.string.pirated), null, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                }
+            }, new DialogInterface.OnDismissListener() {
+                @Override
+                public void onDismiss(DialogInterface dialog) {
+                    mLicenseDialog = false;
+                }
+            }, this).show();
         } else {
             mLicenseDialog = false;
             if (result == 0) {
@@ -275,16 +288,19 @@ public class NavigationActivity extends BaseActivity
         Toolbar toolbar = getToolBar();
         setSupportActionBar(toolbar);
 
-        mDrawer = findViewById(R.id.drawer_layout);
+        mDrawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, mDrawer, toolbar, 0, 0);
         mDrawer.addDrawerListener(toggle);
         toggle.syncState();
 
-        mNavigationView = findViewById(R.id.nav_view);
+        mNavigationView = (NavigationView) findViewById(R.id.nav_view);
         mNavigationView.setNavigationItemSelectedListener(this);
-        mNavigationView.setOnFocusChangeListener((v, hasFocus) -> {
-            if (hasFocus) {
-                v.clearFocus();
+        mNavigationView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (hasFocus) {
+                    v.clearFocus();
+                }
             }
         });
 
@@ -402,12 +418,15 @@ public class NavigationActivity extends BaseActivity
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N_MR1) return;
 
         PriorityQueue<Class<? extends Fragment>> queue = new PriorityQueue<>(
-                (o1, o2) -> {
-                    int opened1 = Prefs.getInt(o1.getSimpleName() + "_opened",
-                            0, NavigationActivity.this);
-                    int opened2 = Prefs.getInt(o2.getSimpleName() + "_opened",
-                            0, NavigationActivity.this);
-                    return opened2 - opened1;
+                new Comparator<Class<? extends Fragment>>() {
+                    @Override
+                    public int compare(Class<? extends Fragment> o1, Class<? extends Fragment> o2) {
+                        int opened1 = Prefs.getInt(o1.getSimpleName() + "_opened",
+                                0, NavigationActivity.this);
+                        int opened2 = Prefs.getInt(o2.getSimpleName() + "_opened",
+                                0, NavigationActivity.this);
+                        return opened2 - opened1;
+                    }
                 });
 
         for (Map.Entry<Integer, Class<? extends Fragment>> entry : mActualFragments.entrySet()) {
@@ -457,12 +476,18 @@ public class NavigationActivity extends BaseActivity
             Fragment currentFragment = getFragment(mSelection);
             if (!(currentFragment instanceof BaseFragment)
                     || !((BaseFragment) currentFragment).onBackPressed()) {
-                long currentTime = SystemClock.elapsedRealtime();
-                if (currentTime - mLastTimeBackbuttonPressed > 2000) {
-                    mLastTimeBackbuttonPressed = currentTime;
-                    Utils.toast(R.string.press_back_again_exit, this);
-                } else {
+                if (mExit) {
+                    mExit = false;
                     super.onBackPressed();
+                } else {
+                    Utils.toast(R.string.press_back_again_exit, this);
+                    mExit = true;
+                    mHandler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            mExit = false;
+                        }
+                    }, 2000);
                 }
             }
         }
@@ -523,8 +548,7 @@ public class NavigationActivity extends BaseActivity
         FragmentManager fragmentManager = getSupportFragmentManager();
         Fragment fragment = fragmentManager.findFragmentByTag(res + "_key");
         if (fragment == null) {
-            fragment = Fragment.instantiate(this,
-                    mActualFragments.get(res).getCanonicalName());
+            fragment = Fragment.instantiate(this, mActualFragments.get(res).getCanonicalName());
         }
         return fragment;
     }

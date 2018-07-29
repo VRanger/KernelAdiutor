@@ -108,7 +108,6 @@ public abstract class RecyclerViewFragment extends BaseFragment {
     private Toolbar mToolBar;
 
     private AsyncTask<Void, Void, List<RecyclerViewItem>> mLoader;
-    AsyncTask<Void, Void, List<RecyclerViewItem>> mReloader;
 
     private ValueAnimator mForegroundAnimator;
     private boolean mForegroundVisible;
@@ -130,7 +129,7 @@ public abstract class RecyclerViewFragment extends BaseFragment {
         mRootView = inflater.inflate(R.layout.fragment_recyclerview, container, false);
         mHandler = new Handler();
 
-        mRecyclerView = mRootView.findViewById(R.id.recyclerview);
+        mRecyclerView = (RecyclerView) mRootView.findViewById(R.id.recyclerview);
 
         if (mViewPagerFragments != null) {
             FragmentTransaction fragmentTransaction = getChildFragmentManager().beginTransaction();
@@ -143,11 +142,11 @@ public abstract class RecyclerViewFragment extends BaseFragment {
             mViewPagerFragments = new ArrayList<>();
         }
         mViewPagerParent = mRootView.findViewById(R.id.viewpagerparent);
-        mViewPager = mRootView.findViewById(R.id.viewpager);
+        mViewPager = (ViewPager) mRootView.findViewById(R.id.viewpager);
         mViewPager.setVisibility(View.INVISIBLE);
         mViewPagerShadow = mRootView.findViewById(R.id.viewpager_shadow);
         mViewPagerShadow.setVisibility(View.INVISIBLE);
-        mCirclePageIndicator = mRootView.findViewById(R.id.indicator);
+        mCirclePageIndicator = (CirclePageIndicator) mRootView.findViewById(R.id.indicator);
         resizeBanner();
         mViewPagerParent.setVisibility(View.INVISIBLE);
         ViewUtils.dismissDialog(getChildFragmentManager());
@@ -158,16 +157,19 @@ public abstract class RecyclerViewFragment extends BaseFragment {
         mToolBar = ((BaseActivity) getActivity()).getToolBar();
 
         if (mAppBarLayout != null && !isForeground()) {
-            mAppBarLayout.postDelayed(() -> {
-                if (mAppBarLayout != null && isAdded() && getActivity() != null) {
-                    ViewCompat.setElevation(mAppBarLayout, showViewPager() && !hideBanner() ?
-                            0 : getResources().getDimension(R.dimen.app_bar_elevation));
+            mAppBarLayout.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    if (mAppBarLayout != null && isAdded() && getActivity() != null) {
+                        ViewCompat.setElevation(mAppBarLayout, showViewPager() && !hideBanner() ?
+                                0 : getResources().getDimension(R.dimen.app_bar_elevation));
+                    }
                 }
             }, 150);
         }
 
-        mTopFab = mRootView.findViewById(R.id.top_fab);
-        mBottomFab = mRootView.findViewById(R.id.bottom_fab);
+        mTopFab = (FloatingActionButton) mRootView.findViewById(R.id.top_fab);
+        mBottomFab = (FloatingActionButton) mRootView.findViewById(R.id.bottom_fab);
 
         mRecyclerView.clearOnScrollListeners();
         if (showViewPager() && !hideBanner()) {
@@ -175,13 +177,19 @@ public abstract class RecyclerViewFragment extends BaseFragment {
             mRecyclerView.addOnScrollListener(mScroller);
         }
         mRecyclerView.setAdapter(mRecyclerViewAdapter == null ? mRecyclerViewAdapter
-                = new RecyclerViewAdapter(mItems, ()
-                -> getHandler().postDelayed(()
-                -> {
-            if (isAdded() && getActivity() != null) {
-                adjustScrollPosition();
+                = new RecyclerViewAdapter(mItems, new RecyclerViewAdapter.OnViewChangedListener() {
+            @Override
+            public void viewChanged() {
+                getHandler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (isAdded() && getActivity() != null) {
+                            adjustScrollPosition();
+                        }
+                    }
+                }, 250);
             }
-        }, 250)) : mRecyclerViewAdapter);
+        }) : mRecyclerViewAdapter);
         mRecyclerView.setLayoutManager(mLayoutManager = getLayoutManager());
         mRecyclerView.setHasFixedSize(true);
 
@@ -196,7 +204,12 @@ public abstract class RecyclerViewFragment extends BaseFragment {
             mAdView = null;
         }
 
-        mTopFab.setOnClickListener(v -> onTopFabClick());
+        mTopFab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onTopFabClick();
+            }
+        });
         {
             Drawable drawable;
             if ((drawable = getTopFabDrawable()) != null) {
@@ -204,7 +217,12 @@ public abstract class RecyclerViewFragment extends BaseFragment {
             }
         }
 
-        mBottomFab.setOnClickListener(v -> onBottomFabClick());
+        mBottomFab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onBottomFabClick();
+            }
+        });
         {
             Drawable drawable;
             if ((drawable = getBottomFabDrawable()) != null) {
@@ -216,15 +234,20 @@ public abstract class RecyclerViewFragment extends BaseFragment {
         mForegroundVisible = false;
         if (foregroundFragment != null) {
             mForegroundParent = mRootView.findViewById(R.id.foreground_parent);
-            mForegroundText = mRootView.findViewById(R.id.foreground_text);
-            mForegroundText.setOnClickListener(v -> dismissForeground());
+            mForegroundText = (TextView) mRootView.findViewById(R.id.foreground_text);
+            mForegroundText.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    dismissForeground();
+                }
+            });
             getChildFragmentManager().beginTransaction().replace(R.id.foreground_content,
                     foregroundFragment).commit();
             mForegroundHeight = getResources().getDisplayMetrics().heightPixels;
         }
 
         if (itemsSize() == 0) {
-            mLoader = new LoaderTask(this, savedInstanceState);
+            mLoader = new UILoader(this, savedInstanceState);
             mLoader.execute();
         } else {
             showProgress();
@@ -240,12 +263,12 @@ public abstract class RecyclerViewFragment extends BaseFragment {
         return mRootView;
     }
 
-    private static class LoaderTask extends AsyncTask<Void, Void, List<RecyclerViewItem>> {
+    private static class UILoader extends AsyncTask<Void, Void, List<RecyclerViewItem>> {
 
         private WeakReference<RecyclerViewFragment> mRefFragment;
         private Bundle mSavedInstanceState;
 
-        private LoaderTask(RecyclerViewFragment fragment, Bundle savedInstanceState) {
+        private UILoader(RecyclerViewFragment fragment, Bundle savedInstanceState) {
             mRefFragment = new WeakReference<>(fragment);
             mSavedInstanceState = savedInstanceState;
         }
@@ -255,18 +278,15 @@ public abstract class RecyclerViewFragment extends BaseFragment {
             super.onPreExecute();
             RecyclerViewFragment fragment = mRefFragment.get();
 
-            if (fragment != null) {
-                fragment.showProgress();
-                fragment.init();
-            }
+            fragment.showProgress();
+            fragment.init();
         }
 
         @Override
         protected List<RecyclerViewItem> doInBackground(Void... params) {
             RecyclerViewFragment fragment = mRefFragment.get();
 
-            if (fragment != null && fragment.isAdded()
-                    && fragment.getActivity() != null) {
+            if (fragment.isAdded() && fragment.getActivity() != null) {
                 List<RecyclerViewItem> items = new ArrayList<>();
                 fragment.addItems(items);
                 return items;
@@ -277,9 +297,9 @@ public abstract class RecyclerViewFragment extends BaseFragment {
         @Override
         protected void onPostExecute(List<RecyclerViewItem> recyclerViewItems) {
             super.onPostExecute(recyclerViewItems);
-            RecyclerViewFragment fragment = mRefFragment.get();
+            if (isCancelled() || recyclerViewItems == null) return;
 
-            if (isCancelled() || recyclerViewItems == null || fragment == null) return;
+            final RecyclerViewFragment fragment = mRefFragment.get();
 
             for (RecyclerViewItem item : recyclerViewItems) {
                 fragment.addItem(item);
@@ -323,73 +343,6 @@ public abstract class RecyclerViewFragment extends BaseFragment {
             }
             fragment.mLoader = null;
         }
-    }
-
-    protected <T extends RecyclerViewFragment> void reload(ReloadHandler<T> listener) {
-        mReloader = new ReloadTask<>((T) this, listener);
-        mReloader.execute();
-    }
-
-    public static class ReloadHandler<T extends RecyclerViewFragment> {
-        public List<RecyclerViewItem> onReload(T fragment) {
-            List<RecyclerViewItem> items = new ArrayList<>();
-            fragment.load(items);
-            return items;
-        }
-
-        public void onPostExecute(T fragment) {
-        }
-    }
-
-    protected void load(List<RecyclerViewItem> items) {
-    }
-
-    private static class ReloadTask<T extends RecyclerViewFragment> extends AsyncTask<Void, Void, List<RecyclerViewItem>> {
-
-        private WeakReference<T> mRefFragment;
-        private ReloadHandler<T> mListener;
-
-        private ReloadTask(T fragment, @NonNull ReloadHandler<T> listener) {
-            mRefFragment = new WeakReference<>(fragment);
-            mListener = listener;
-        }
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            T fragment = mRefFragment.get();
-            if (fragment != null) {
-                fragment.showProgress();
-            }
-        }
-
-        @Override
-        protected List<RecyclerViewItem> doInBackground(Void... voids) {
-            T fragment = mRefFragment.get();
-            if (fragment != null) {
-                return mListener.onReload(fragment);
-            }
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(List<RecyclerViewItem> items) {
-            super.onPostExecute(items);
-            T fragment = mRefFragment.get();
-            if (fragment != null) {
-                for (RecyclerViewItem item : items) {
-                    fragment.addItem(item);
-                }
-                fragment.hideProgress();
-                fragment.mReloader = null;
-
-                mListener.onPostExecute(fragment);
-            }
-        }
-    }
-
-    protected boolean isReloading() {
-        return mReloader != null;
     }
 
     @Override
@@ -645,8 +598,12 @@ public abstract class RecyclerViewFragment extends BaseFragment {
                 }
 
                 mAlphaAnimator = ValueAnimator.ofFloat(fade ? 1f : 0f, fade ? 0f : 1f);
-                mAlphaAnimator.addUpdateListener(animation
-                        -> setAppBarLayoutAlpha(Math.round(255 * (float) animation.getAnimatedValue())));
+                mAlphaAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                    @Override
+                    public void onAnimationUpdate(ValueAnimator animation) {
+                        setAppBarLayoutAlpha(Math.round(255 * (float) animation.getAnimatedValue()));
+                    }
+                });
                 mAlphaAnimator.addListener(new AnimatorListenerAdapter() {
                     @Override
                     public void onAnimationEnd(Animator animation) {
@@ -670,9 +627,12 @@ public abstract class RecyclerViewFragment extends BaseFragment {
             boolean show = mAppBarLayoutDistance < mAppBarLayout.getHeight() * 0.5f
                     || mScrollDistance <= mViewPagerParent.getHeight();
             ValueAnimator animator = ValueAnimator.ofInt(mAppBarLayoutDistance, show ? 0 : mAppBarLayout.getHeight());
-            animator.addUpdateListener(animation -> {
-                mAppBarLayoutDistance = (int) animation.getAnimatedValue();
-                mAppBarLayout.setTranslationY(-mAppBarLayoutDistance);
+            animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                @Override
+                public void onAnimationUpdate(ValueAnimator animation) {
+                    mAppBarLayoutDistance = (int) animation.getAnimatedValue();
+                    mAppBarLayout.setTranslationY(-mAppBarLayoutDistance);
+                }
             });
             animator.start();
         }
@@ -680,15 +640,18 @@ public abstract class RecyclerViewFragment extends BaseFragment {
 
     protected void showProgress() {
         if (getActivity() != null) {
-            getActivity().runOnUiThread(() -> {
-                if (isAdded()) {
-                    mProgress.setVisibility(View.VISIBLE);
-                    mRecyclerView.setVisibility(View.INVISIBLE);
-                    if (mTopFab != null && showTopFab()) {
-                        mTopFab.hide();
-                    }
-                    if (mBottomFab != null && showBottomFab()) {
-                        mBottomFab.hide();
+            getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    if (isAdded()) {
+                        mProgress.setVisibility(View.VISIBLE);
+                        mRecyclerView.setVisibility(View.INVISIBLE);
+                        if (mTopFab != null && showTopFab()) {
+                            mTopFab.hide();
+                        }
+                        if (mBottomFab != null && showBottomFab()) {
+                            mBottomFab.hide();
+                        }
                     }
                 }
             });
@@ -726,8 +689,12 @@ public abstract class RecyclerViewFragment extends BaseFragment {
         }
         if (mForegroundAnimator != null) mForegroundAnimator.cancel();
         mForegroundAnimator = ValueAnimator.ofFloat(mForegroundHeight, 0f);
-        mForegroundAnimator.addUpdateListener(animation
-                -> mForegroundParent.setTranslationY((float) animation.getAnimatedValue()));
+        mForegroundAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                mForegroundParent.setTranslationY((float) animation.getAnimatedValue());
+            }
+        });
         mForegroundAnimator.addListener(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationStart(Animator animation) {
@@ -748,8 +715,12 @@ public abstract class RecyclerViewFragment extends BaseFragment {
     public void dismissForeground() {
         float translation = mForegroundParent.getTranslationY();
         mForegroundAnimator = ValueAnimator.ofFloat(translation, mForegroundHeight);
-        mForegroundAnimator.addUpdateListener(animation
-                -> mForegroundParent.setTranslationY((float) animation.getAnimatedValue()));
+        mForegroundAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                mForegroundParent.setTranslationY((float) animation.getAnimatedValue());
+            }
+        });
         mForegroundAnimator.addListener(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationEnd(Animator animation) {
@@ -887,16 +858,22 @@ public abstract class RecyclerViewFragment extends BaseFragment {
         }
     }
 
-    private Runnable mScheduler = () -> {
-        refreshThread();
+    private Runnable mScheduler = new Runnable() {
+        @Override
+        public void run() {
+            refreshThread();
 
-        Activity activity = getActivity();
-        if (activity == null) return;
-        activity.runOnUiThread(() -> {
-            if (isAdded()) {
-                refresh();
-            }
-        });
+            Activity activity = getActivity();
+            if (activity == null) return;
+            activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    if (getActivity() != null) {
+                        refresh();
+                    }
+                }
+            });
+        }
     };
 
     protected void refreshThread() {
@@ -928,10 +905,6 @@ public abstract class RecyclerViewFragment extends BaseFragment {
         if (mLoader != null) {
             mLoader.cancel(true);
             mLoader = null;
-        }
-        if (mReloader != null) {
-            mReloader.cancel(true);
-            mReloader = null;
         }
         mAdView = null;
         for (RecyclerViewItem item : mItems) {

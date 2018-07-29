@@ -212,8 +212,12 @@ public class ScreenFragment extends RecyclerViewFragment {
             SwitchView invertScreen = new SwitchView();
             invertScreen.setSummary(getString(R.string.invert_screen));
             invertScreen.setChecked(mCalibration.isInvertScreenEnabled());
-            invertScreen.addOnSwitchListener((switchView, isChecked)
-                    -> mCalibration.enableInvertScreen(isChecked, getActivity()));
+            invertScreen.addOnSwitchListener(new SwitchView.OnSwitchListener() {
+                @Override
+                public void onChanged(SwitchView switchView, boolean isChecked) {
+                    mCalibration.enableInvertScreen(isChecked, getActivity());
+                }
+            });
 
             items.add(invertScreen);
         }
@@ -241,11 +245,14 @@ public class ScreenFragment extends RecyclerViewFragment {
             SwitchView grayscaleMode = new SwitchView();
             grayscaleMode.setSummary(getString(R.string.grayscale_mode));
             grayscaleMode.setChecked(saturation == 128);
-            grayscaleMode.addOnSwitchListener((switchView, isChecked) -> {
-                saturationIntensity.setEnabled(!isChecked);
-                mCalibration.enableGrayscaleMode(isChecked, getActivity());
-                if (!isChecked) {
-                    saturationIntensity.setProgress(30);
+            grayscaleMode.addOnSwitchListener(new SwitchView.OnSwitchListener() {
+                @Override
+                public void onChanged(SwitchView switchView, boolean isChecked) {
+                    saturationIntensity.setEnabled(!isChecked);
+                    mCalibration.enableGrayscaleMode(isChecked, getActivity());
+                    if (!isChecked) {
+                        saturationIntensity.setProgress(30);
+                    }
                 }
             });
 
@@ -314,8 +321,12 @@ public class ScreenFragment extends RecyclerViewFragment {
             SwitchView screenHBM = new SwitchView();
             screenHBM.setSummary(getString(R.string.high_brightness_mode));
             screenHBM.setChecked(mCalibration.isScreenHBMEnabled());
-            screenHBM.addOnSwitchListener((switchView, isChecked)
-                    -> mCalibration.enableScreenHBM(isChecked, getActivity()));
+            screenHBM.addOnSwitchListener(new SwitchView.OnSwitchListener() {
+                @Override
+                public void onChanged(SwitchView switchView, boolean isChecked) {
+                    mCalibration.enableScreenHBM(isChecked, getActivity());
+                }
+            });
 
             items.add(screenHBM);
         }
@@ -324,8 +335,12 @@ public class ScreenFragment extends RecyclerViewFragment {
             SwitchView sRGB = new SwitchView();
             sRGB.setSummary(getString(R.string.srgb));
             sRGB.setChecked(mCalibration.isSRGBEnabled());
-            sRGB.addOnSwitchListener((switchView, isChecked)
-                    -> mCalibration.enableSRGB(isChecked, getActivity()));
+            sRGB.addOnSwitchListener(new SwitchView.OnSwitchListener() {
+                @Override
+                public void onChanged(SwitchView switchView, boolean isChecked) {
+                    mCalibration.enableSRGB(isChecked, getActivity());
+                }
+            });
 
             items.add(sRGB);
         }
@@ -335,9 +350,12 @@ public class ScreenFragment extends RecyclerViewFragment {
         if (mKGammaBlue == null) {
             mKGammaBlue = new GenericSelectView();
             mKGammaBlue.setSummary(getString(R.string.blue));
-            mKGammaBlue.setOnGenericValueListener((genericSelectView, value) -> {
-                Gamma.setKGammaBlue(value, getActivity());
-                kgammaInit(null);
+            mKGammaBlue.setOnGenericValueListener(new GenericSelectView.OnGenericValueListener() {
+                @Override
+                public void onGenericValueSelected(GenericSelectView genericSelectView, String value) {
+                    Gamma.setKGammaBlue(value, getActivity());
+                    kgammaInit(null);
+                }
             });
         }
         String blue = Gamma.getKGammaBlue();
@@ -351,9 +369,12 @@ public class ScreenFragment extends RecyclerViewFragment {
         if (mKGammaGreen == null) {
             mKGammaGreen = new GenericSelectView();
             mKGammaGreen.setSummary(getString(R.string.green));
-            mKGammaGreen.setOnGenericValueListener((genericSelectView, value) -> {
-                Gamma.setKGammaGreen(value, getActivity());
-                kgammaInit(null);
+            mKGammaGreen.setOnGenericValueListener(new GenericSelectView.OnGenericValueListener() {
+                @Override
+                public void onGenericValueSelected(GenericSelectView genericSelectView, String value) {
+                    Gamma.setKGammaGreen(value, getActivity());
+                    kgammaInit(null);
+                }
             });
         }
         String green = Gamma.getKGammaGreen();
@@ -367,9 +388,12 @@ public class ScreenFragment extends RecyclerViewFragment {
         if (mKGammaRed == null) {
             mKGammaRed = new GenericSelectView();
             mKGammaRed.setSummary(getString(R.string.red));
-            mKGammaRed.setOnGenericValueListener((genericSelectView, value) -> {
-                Gamma.setKGammaRed(value, getActivity());
-                kgammaInit(null);
+            mKGammaRed.setOnGenericValueListener(new GenericSelectView.OnGenericValueListener() {
+                @Override
+                public void onGenericValueSelected(GenericSelectView genericSelectView, String value) {
+                    Gamma.setKGammaRed(value, getActivity());
+                    kgammaInit(null);
+                }
             });
         }
         String red = Gamma.getKGammaRed();
@@ -392,10 +416,13 @@ public class ScreenFragment extends RecyclerViewFragment {
             profiles.setSummary(getString(R.string.gamma_profiles_summary));
             profiles.setItems(profileList);
             profiles.setSelection(Prefs.getInt("kgamma_profile", -1, getActivity()));
-            profiles.setOnDropDownListener((dropDownView, position, value) -> {
-                Gamma.setKGammaProfile(position, gammaProfiles, getActivity());
-                kgammaInit(null);
-                Prefs.saveInt("kgamma_profile", position, getActivity());
+            profiles.setOnDropDownListener(new DropDownView.OnDropDownListener() {
+                @Override
+                public void onSelect(DropDownView dropDownView, int position, String value) {
+                    Gamma.setKGammaProfile(position, gammaProfiles, getActivity());
+                    kgammaInit(null);
+                    Prefs.saveInt("kgamma_profile", position, getActivity());
+                }
             });
 
             items.add(profiles);
@@ -406,9 +433,12 @@ public class ScreenFragment extends RecyclerViewFragment {
         if (mGammaControlRedGreys == null) {
             mGammaControlRedGreys = new GenericSelectView();
             mGammaControlRedGreys.setSummary(getString(R.string.red_greys));
-            mGammaControlRedGreys.setOnGenericValueListener((genericSelectView, value) -> {
-                Gamma.setRedGreys(value, getActivity());
-                gammacontrolInit(null);
+            mGammaControlRedGreys.setOnGenericValueListener(new GenericSelectView.OnGenericValueListener() {
+                @Override
+                public void onGenericValueSelected(GenericSelectView genericSelectView, String value) {
+                    Gamma.setRedGreys(value, getActivity());
+                    gammacontrolInit(null);
+                }
             });
         }
 
@@ -423,9 +453,12 @@ public class ScreenFragment extends RecyclerViewFragment {
         if (mGammaControlRedMids == null) {
             mGammaControlRedMids = new GenericSelectView();
             mGammaControlRedMids.setSummary(getString(R.string.red_mids));
-            mGammaControlRedMids.setOnGenericValueListener((genericSelectView, value) -> {
-                Gamma.setRedMids(value, getActivity());
-                gammacontrolInit(null);
+            mGammaControlRedMids.setOnGenericValueListener(new GenericSelectView.OnGenericValueListener() {
+                @Override
+                public void onGenericValueSelected(GenericSelectView genericSelectView, String value) {
+                    Gamma.setRedMids(value, getActivity());
+                    gammacontrolInit(null);
+                }
             });
         }
 
@@ -440,9 +473,12 @@ public class ScreenFragment extends RecyclerViewFragment {
         if (mGammaControlRedBlacks == null) {
             mGammaControlRedBlacks = new GenericSelectView();
             mGammaControlRedBlacks.setSummary(getString(R.string.red_blacks));
-            mGammaControlRedBlacks.setOnGenericValueListener((genericSelectView, value) -> {
-                Gamma.setRedBlacks(value, getActivity());
-                gammacontrolInit(null);
+            mGammaControlRedBlacks.setOnGenericValueListener(new GenericSelectView.OnGenericValueListener() {
+                @Override
+                public void onGenericValueSelected(GenericSelectView genericSelectView, String value) {
+                    Gamma.setRedBlacks(value, getActivity());
+                    gammacontrolInit(null);
+                }
             });
         }
 
@@ -457,9 +493,12 @@ public class ScreenFragment extends RecyclerViewFragment {
         if (mGammaControlRedWhites == null) {
             mGammaControlRedWhites = new GenericSelectView();
             mGammaControlRedWhites.setSummary(getString(R.string.red_whites));
-            mGammaControlRedWhites.setOnGenericValueListener((genericSelectView, value) -> {
-                Gamma.setRedWhites(value, getActivity());
-                gammacontrolInit(null);
+            mGammaControlRedWhites.setOnGenericValueListener(new GenericSelectView.OnGenericValueListener() {
+                @Override
+                public void onGenericValueSelected(GenericSelectView genericSelectView, String value) {
+                    Gamma.setRedWhites(value, getActivity());
+                    gammacontrolInit(null);
+                }
             });
         }
 
@@ -474,9 +513,12 @@ public class ScreenFragment extends RecyclerViewFragment {
         if (mGammaControlGreenGreys == null) {
             mGammaControlGreenGreys = new GenericSelectView();
             mGammaControlGreenGreys.setSummary(getString(R.string.green_greys));
-            mGammaControlGreenGreys.setOnGenericValueListener((genericSelectView, value) -> {
-                Gamma.setGreenGreys(value, getActivity());
-                gammacontrolInit(null);
+            mGammaControlGreenGreys.setOnGenericValueListener(new GenericSelectView.OnGenericValueListener() {
+                @Override
+                public void onGenericValueSelected(GenericSelectView genericSelectView, String value) {
+                    Gamma.setGreenGreys(value, getActivity());
+                    gammacontrolInit(null);
+                }
             });
         }
 
@@ -491,9 +533,12 @@ public class ScreenFragment extends RecyclerViewFragment {
         if (mGammaControlGreenMids == null) {
             mGammaControlGreenMids = new GenericSelectView();
             mGammaControlGreenMids.setSummary(getString(R.string.green_mids));
-            mGammaControlGreenMids.setOnGenericValueListener((genericSelectView, value) -> {
-                Gamma.setGreenMids(value, getActivity());
-                gammacontrolInit(null);
+            mGammaControlGreenMids.setOnGenericValueListener(new GenericSelectView.OnGenericValueListener() {
+                @Override
+                public void onGenericValueSelected(GenericSelectView genericSelectView, String value) {
+                    Gamma.setGreenMids(value, getActivity());
+                    gammacontrolInit(null);
+                }
             });
         }
 
@@ -508,9 +553,12 @@ public class ScreenFragment extends RecyclerViewFragment {
         if (mGammaControlGreenBlacks == null) {
             mGammaControlGreenBlacks = new GenericSelectView();
             mGammaControlGreenBlacks.setSummary(getString(R.string.green_blacks));
-            mGammaControlGreenBlacks.setOnGenericValueListener((genericSelectView, value) -> {
-                Gamma.setGreenBlacks(value, getActivity());
-                gammacontrolInit(null);
+            mGammaControlGreenBlacks.setOnGenericValueListener(new GenericSelectView.OnGenericValueListener() {
+                @Override
+                public void onGenericValueSelected(GenericSelectView genericSelectView, String value) {
+                    Gamma.setGreenBlacks(value, getActivity());
+                    gammacontrolInit(null);
+                }
             });
         }
 
@@ -525,9 +573,12 @@ public class ScreenFragment extends RecyclerViewFragment {
         if (mGammaControlGreenWhites == null) {
             mGammaControlGreenWhites = new GenericSelectView();
             mGammaControlGreenWhites.setSummary(getString(R.string.green_whites));
-            mGammaControlGreenWhites.setOnGenericValueListener((genericSelectView, value) -> {
-                Gamma.setGreenWhites(value, getActivity());
-                gammacontrolInit(null);
+            mGammaControlGreenWhites.setOnGenericValueListener(new GenericSelectView.OnGenericValueListener() {
+                @Override
+                public void onGenericValueSelected(GenericSelectView genericSelectView, String value) {
+                    Gamma.setGreenWhites(value, getActivity());
+                    gammacontrolInit(null);
+                }
             });
         }
 
@@ -542,9 +593,12 @@ public class ScreenFragment extends RecyclerViewFragment {
         if (mGammaControlBlueGreys == null) {
             mGammaControlBlueGreys = new GenericSelectView();
             mGammaControlBlueGreys.setSummary(getString(R.string.blue_greys));
-            mGammaControlBlueGreys.setOnGenericValueListener((genericSelectView, value) -> {
-                Gamma.setBlueGreys(value, getActivity());
-                gammacontrolInit(null);
+            mGammaControlBlueGreys.setOnGenericValueListener(new GenericSelectView.OnGenericValueListener() {
+                @Override
+                public void onGenericValueSelected(GenericSelectView genericSelectView, String value) {
+                    Gamma.setBlueGreys(value, getActivity());
+                    gammacontrolInit(null);
+                }
             });
         }
 
@@ -559,9 +613,12 @@ public class ScreenFragment extends RecyclerViewFragment {
         if (mGammaControlBlueMids == null) {
             mGammaControlBlueMids = new GenericSelectView();
             mGammaControlBlueMids.setSummary(getString(R.string.blue_mids));
-            mGammaControlBlueMids.setOnGenericValueListener((genericSelectView, value) -> {
-                Gamma.setBlueMids(value, getActivity());
-                gammacontrolInit(null);
+            mGammaControlBlueMids.setOnGenericValueListener(new GenericSelectView.OnGenericValueListener() {
+                @Override
+                public void onGenericValueSelected(GenericSelectView genericSelectView, String value) {
+                    Gamma.setBlueMids(value, getActivity());
+                    gammacontrolInit(null);
+                }
             });
         }
 
@@ -576,9 +633,12 @@ public class ScreenFragment extends RecyclerViewFragment {
         if (mGammaControlBlueBlacks == null) {
             mGammaControlBlueBlacks = new GenericSelectView();
             mGammaControlBlueBlacks.setSummary(getString(R.string.blue_blacks));
-            mGammaControlBlueBlacks.setOnGenericValueListener((genericSelectView, value) -> {
-                Gamma.setBlueBlacks(value, getActivity());
-                gammacontrolInit(null);
+            mGammaControlBlueBlacks.setOnGenericValueListener(new GenericSelectView.OnGenericValueListener() {
+                @Override
+                public void onGenericValueSelected(GenericSelectView genericSelectView, String value) {
+                    Gamma.setBlueBlacks(value, getActivity());
+                    gammacontrolInit(null);
+                }
             });
         }
 
@@ -593,9 +653,12 @@ public class ScreenFragment extends RecyclerViewFragment {
         if (mGammaControlBlueWhites == null) {
             mGammaControlBlueWhites = new GenericSelectView();
             mGammaControlBlueWhites.setSummary(getString(R.string.blue_whites));
-            mGammaControlBlueWhites.setOnGenericValueListener((genericSelectView, value) -> {
-                Gamma.setBlueWhites(value, getActivity());
-                gammacontrolInit(null);
+            mGammaControlBlueWhites.setOnGenericValueListener(new GenericSelectView.OnGenericValueListener() {
+                @Override
+                public void onGenericValueSelected(GenericSelectView genericSelectView, String value) {
+                    Gamma.setBlueWhites(value, getActivity());
+                    gammacontrolInit(null);
+                }
             });
         }
 
@@ -610,9 +673,12 @@ public class ScreenFragment extends RecyclerViewFragment {
         if (mGammaControlContrast == null) {
             mGammaControlContrast = new GenericSelectView();
             mGammaControlContrast.setSummary(getString(R.string.contrast));
-            mGammaControlContrast.setOnGenericValueListener((genericSelectView, value) -> {
-                Gamma.setGammaContrast(value, getActivity());
-                gammacontrolInit(null);
+            mGammaControlContrast.setOnGenericValueListener(new GenericSelectView.OnGenericValueListener() {
+                @Override
+                public void onGenericValueSelected(GenericSelectView genericSelectView, String value) {
+                    Gamma.setGammaContrast(value, getActivity());
+                    gammacontrolInit(null);
+                }
             });
         }
 
@@ -627,9 +693,12 @@ public class ScreenFragment extends RecyclerViewFragment {
         if (mGammaControlBrightness == null) {
             mGammaControlBrightness = new GenericSelectView();
             mGammaControlBrightness.setSummary(getString(R.string.brightness));
-            mGammaControlBrightness.setOnGenericValueListener((genericSelectView, value) -> {
-                Gamma.setGammaBrightness(value, getActivity());
-                gammacontrolInit(null);
+            mGammaControlBrightness.setOnGenericValueListener(new GenericSelectView.OnGenericValueListener() {
+                @Override
+                public void onGenericValueSelected(GenericSelectView genericSelectView, String value) {
+                    Gamma.setGammaBrightness(value, getActivity());
+                    gammacontrolInit(null);
+                }
             });
         }
 
@@ -644,9 +713,12 @@ public class ScreenFragment extends RecyclerViewFragment {
         if (mGammaControlSaturation == null) {
             mGammaControlSaturation = new GenericSelectView();
             mGammaControlSaturation.setSummary(getString(R.string.saturation_intensity));
-            mGammaControlSaturation.setOnGenericValueListener((genericSelectView, value) -> {
-                Gamma.setGammaSaturation(value, getActivity());
-                gammacontrolInit(null);
+            mGammaControlSaturation.setOnGenericValueListener(new GenericSelectView.OnGenericValueListener() {
+                @Override
+                public void onGenericValueSelected(GenericSelectView genericSelectView, String value) {
+                    Gamma.setGammaSaturation(value, getActivity());
+                    gammacontrolInit(null);
+                }
             });
         }
 
@@ -670,10 +742,13 @@ public class ScreenFragment extends RecyclerViewFragment {
             profiles.setSummary(getString(R.string.gamma_profiles_summary));
             profiles.setItems(profileList);
             profiles.setSelection(Prefs.getInt("gamma_control_profile", -1, getActivity()));
-            profiles.setOnDropDownListener((dropDownView, position, value) -> {
-                Gamma.setGammaControlProfile(position, gammaProfiles, getActivity());
-                gammacontrolInit(null);
-                Prefs.saveInt("gamma_control_profile", position, getActivity());
+            profiles.setOnDropDownListener(new DropDownView.OnDropDownListener() {
+                @Override
+                public void onSelect(DropDownView dropDownView, int position, String value) {
+                    Gamma.setGammaControlProfile(position, gammaProfiles, getActivity());
+                    gammacontrolInit(null);
+                    Prefs.saveInt("gamma_control_profile", position, getActivity());
+                }
             });
 
             items.add(profiles);
@@ -684,8 +759,12 @@ public class ScreenFragment extends RecyclerViewFragment {
         if (mDsiPanelBlueNegative == null) {
             mDsiPanelBlueNegative = new GenericSelectView();
             mDsiPanelBlueNegative.setSummary(getString(R.string.blue_negative));
-            mDsiPanelBlueNegative.setOnGenericValueListener((genericSelectView, value)
-                    -> Gamma.setBlueNegative(value, getActivity()));
+            mDsiPanelBlueNegative.setOnGenericValueListener(new GenericSelectView.OnGenericValueListener() {
+                @Override
+                public void onGenericValueSelected(GenericSelectView genericSelectView, String value) {
+                    Gamma.setBlueNegative(value, getActivity());
+                }
+            });
         }
 
         String blueNegative = Gamma.getBlueNegative();
@@ -699,8 +778,12 @@ public class ScreenFragment extends RecyclerViewFragment {
         if (mDsiPanelBluePositive == null) {
             mDsiPanelBluePositive = new GenericSelectView();
             mDsiPanelBluePositive.setSummary(getString(R.string.blue_positive));
-            mDsiPanelBluePositive.setOnGenericValueListener((genericSelectView, value)
-                    -> Gamma.setBluePositive(value, getActivity()));
+            mDsiPanelBluePositive.setOnGenericValueListener(new GenericSelectView.OnGenericValueListener() {
+                @Override
+                public void onGenericValueSelected(GenericSelectView genericSelectView, String value) {
+                    Gamma.setBluePositive(value, getActivity());
+                }
+            });
         }
 
         String bluePositive = Gamma.getBluePositive();
@@ -714,8 +797,12 @@ public class ScreenFragment extends RecyclerViewFragment {
         if (mDsiPanelGreenNegative == null) {
             mDsiPanelGreenNegative = new GenericSelectView();
             mDsiPanelGreenNegative.setSummary(getString(R.string.green_negative));
-            mDsiPanelGreenNegative.setOnGenericValueListener((genericSelectView, value)
-                    -> Gamma.setGreenNegative(value, getActivity()));
+            mDsiPanelGreenNegative.setOnGenericValueListener(new GenericSelectView.OnGenericValueListener() {
+                @Override
+                public void onGenericValueSelected(GenericSelectView genericSelectView, String value) {
+                    Gamma.setGreenNegative(value, getActivity());
+                }
+            });
         }
 
         String greenNegative = Gamma.getGreenNegative();
@@ -729,8 +816,12 @@ public class ScreenFragment extends RecyclerViewFragment {
         if (mDsiPanelGreenPositive == null) {
             mDsiPanelGreenPositive = new GenericSelectView();
             mDsiPanelGreenPositive.setSummary(getString(R.string.green_positive));
-            mDsiPanelGreenPositive.setOnGenericValueListener((genericSelectView, value)
-                    -> Gamma.setGreenPositive(value, getActivity()));
+            mDsiPanelGreenPositive.setOnGenericValueListener(new GenericSelectView.OnGenericValueListener() {
+                @Override
+                public void onGenericValueSelected(GenericSelectView genericSelectView, String value) {
+                    Gamma.setGreenPositive(value, getActivity());
+                }
+            });
         }
 
         String greenPositive = Gamma.getGreenPositive();
@@ -744,8 +835,12 @@ public class ScreenFragment extends RecyclerViewFragment {
         if (mDsiPanelRedNegative == null) {
             mDsiPanelRedNegative = new GenericSelectView();
             mDsiPanelRedNegative.setSummary(getString(R.string.red_negative));
-            mDsiPanelRedNegative.setOnGenericValueListener((genericSelectView, value)
-                    -> Gamma.setRedNegative(value, getActivity()));
+            mDsiPanelRedNegative.setOnGenericValueListener(new GenericSelectView.OnGenericValueListener() {
+                @Override
+                public void onGenericValueSelected(GenericSelectView genericSelectView, String value) {
+                    Gamma.setRedNegative(value, getActivity());
+                }
+            });
         }
 
         String redNegative = Gamma.getRedNegative();
@@ -759,8 +854,12 @@ public class ScreenFragment extends RecyclerViewFragment {
         if (mDsiPanelRedPositive == null) {
             mDsiPanelRedPositive = new GenericSelectView();
             mDsiPanelRedPositive.setSummary(getString(R.string.red_positive));
-            mDsiPanelRedPositive.setOnGenericValueListener((genericSelectView, value)
-                    -> Gamma.setRedPositive(value, getActivity()));
+            mDsiPanelRedPositive.setOnGenericValueListener(new GenericSelectView.OnGenericValueListener() {
+                @Override
+                public void onGenericValueSelected(GenericSelectView genericSelectView, String value) {
+                    Gamma.setRedPositive(value, getActivity());
+                }
+            });
         }
 
         String redPositive = Gamma.getRedPositive();
@@ -774,8 +873,12 @@ public class ScreenFragment extends RecyclerViewFragment {
         if (mDsiPanelWhitePoint == null) {
             mDsiPanelWhitePoint = new GenericSelectView();
             mDsiPanelWhitePoint.setSummary(getString(R.string.white_point));
-            mDsiPanelWhitePoint.setOnGenericValueListener((genericSelectView, value)
-                    -> Gamma.setWhitePoint(value, getActivity()));
+            mDsiPanelWhitePoint.setOnGenericValueListener(new GenericSelectView.OnGenericValueListener() {
+                @Override
+                public void onGenericValueSelected(GenericSelectView genericSelectView, String value) {
+                    Gamma.setWhitePoint(value, getActivity());
+                }
+            });
         }
 
         String whitePoint = Gamma.getWhitePoint();
@@ -798,10 +901,13 @@ public class ScreenFragment extends RecyclerViewFragment {
             profiles.setSummary(getString(R.string.gamma_profiles_summary));
             profiles.setItems(profileList);
             profiles.setSelection(Prefs.getInt("dsi_panel_profile", -1, getActivity()));
-            profiles.setOnDropDownListener((dropDownView, position, value) -> {
-                Gamma.setDsiPanelProfile(position, gammaProfiles, getActivity());
-                dsipanelInit(null);
-                Prefs.saveInt("dsi_panel_profile", position, getActivity());
+            profiles.setOnDropDownListener(new DropDownView.OnDropDownListener() {
+                @Override
+                public void onSelect(DropDownView dropDownView, int position, String value) {
+                    Gamma.setDsiPanelProfile(position, gammaProfiles, getActivity());
+                    dsipanelInit(null);
+                    Prefs.saveInt("dsi_panel_profile", position, getActivity());
+                }
             });
 
             items.add(profiles);
@@ -816,8 +922,12 @@ public class ScreenFragment extends RecyclerViewFragment {
             SwitchView brightnessMode = new SwitchView();
             brightnessMode.setSummary(getString(R.string.brightness_mode));
             brightnessMode.setChecked(mMisc.isBrightnessModeEnabled());
-            brightnessMode.addOnSwitchListener((switchView, isChecked)
-                    -> mMisc.enableBrightnessMode(isChecked, getActivity()));
+            brightnessMode.addOnSwitchListener(new SwitchView.OnSwitchListener() {
+                @Override
+                public void onChanged(SwitchView switchView, boolean isChecked) {
+                    mMisc.enableBrightnessMode(isChecked, getActivity());
+                }
+            });
 
             lcdBackLightCard.addItem(brightnessMode);
         }
@@ -877,8 +987,12 @@ public class ScreenFragment extends RecyclerViewFragment {
             SwitchView backLightDimmer = new SwitchView();
             backLightDimmer.setSummary(getString(R.string.backlight_dimmer));
             backLightDimmer.setChecked(mMisc.isBackLightDimmerEnabled());
-            backLightDimmer.addOnSwitchListener((switchView, isChecked)
-                    -> mMisc.enableBackLightDimmer(isChecked, getActivity()));
+            backLightDimmer.addOnSwitchListener(new SwitchView.OnSwitchListener() {
+                @Override
+                public void onChanged(SwitchView switchView, boolean isChecked) {
+                    mMisc.enableBackLightDimmer(isChecked, getActivity());
+                }
+            });
 
             backLightDimmerCard.addItem(backLightDimmer);
         }
@@ -951,8 +1065,12 @@ public class ScreenFragment extends RecyclerViewFragment {
         negative.setTitle(getString(R.string.negative_toggle));
         negative.setSummary(getString(R.string.negative_toggle_summary));
         negative.setChecked(mMisc.isNegativeToggleEnabled());
-        negative.addOnSwitchListener((switchView, isChecked)
-                -> mMisc.enableNegativeToggle(isChecked, getActivity()));
+        negative.addOnSwitchListener(new SwitchView.OnSwitchListener() {
+            @Override
+            public void onChanged(SwitchView switchView, boolean isChecked) {
+                mMisc.enableNegativeToggle(isChecked, getActivity());
+            }
+        });
 
         items.add(negative);
     }
@@ -966,8 +1084,12 @@ public class ScreenFragment extends RecyclerViewFragment {
             registerHook.setTitle(getString(R.string.register_hook));
             registerHook.setSummary(getString(R.string.register_hook_summary));
             registerHook.setChecked(mMisc.isRegisterHookEnabled());
-            registerHook.addOnSwitchListener((switchView, isChecked)
-                    -> mMisc.enableRegisterHook(isChecked, getActivity()));
+            registerHook.addOnSwitchListener(new SwitchView.OnSwitchListener() {
+                @Override
+                public void onChanged(SwitchView switchView, boolean isChecked) {
+                    mMisc.enableRegisterHook(isChecked, getActivity());
+                }
+            });
 
             mdnieCard.addItem(registerHook);
         }
@@ -977,8 +1099,12 @@ public class ScreenFragment extends RecyclerViewFragment {
             masterSequence.setTitle(getString(R.string.master_sequence));
             masterSequence.setSummary(getString(R.string.master_sequence_summary));
             masterSequence.setChecked(mMisc.isMasterSequenceEnable());
-            masterSequence.addOnSwitchListener((switchView, isChecked)
-                    -> mMisc.enableMasterSequence(isChecked, getActivity()));
+            masterSequence.addOnSwitchListener(new SwitchView.OnSwitchListener() {
+                @Override
+                public void onChanged(SwitchView switchView, boolean isChecked) {
+                    mMisc.enableMasterSequence(isChecked, getActivity());
+                }
+            });
 
             mdnieCard.addItem(masterSequence);
         }
@@ -993,8 +1119,12 @@ public class ScreenFragment extends RecyclerViewFragment {
         glove.setTitle(getString(R.string.glove_mode));
         glove.setSummary(getString(R.string.glove_mode_summary));
         glove.setChecked(mMisc.isGloveModeEnabled());
-        glove.addOnSwitchListener((switchView, isChecked)
-                -> mMisc.enableGloveMode(isChecked, getActivity()));
+        glove.addOnSwitchListener(new SwitchView.OnSwitchListener() {
+            @Override
+            public void onChanged(SwitchView switchView, boolean isChecked) {
+                mMisc.enableGloveMode(isChecked, getActivity());
+            }
+        });
 
         items.add(glove);
     }

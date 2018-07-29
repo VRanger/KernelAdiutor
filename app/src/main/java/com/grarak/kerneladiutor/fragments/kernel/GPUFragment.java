@@ -98,8 +98,12 @@ public class GPUFragment extends RecyclerViewFragment {
             max2dFreq.setSummary(getString(R.string.gpu_2d_max_freq_summary));
             max2dFreq.setItems(mGPUFreq.get2dAdjustedFreqs(getActivity()));
             max2dFreq.setItem((mGPUFreq.get2dMaxFreq() / 1000000) + getString(R.string.mhz));
-            max2dFreq.setOnItemSelected((selectView, position, item)
-                    -> mGPUFreq.set2dMaxFreq(mGPUFreq.get2dAvailableFreqs().get(position), getActivity()));
+            max2dFreq.setOnItemSelected(new SelectView.OnItemSelected() {
+                @Override
+                public void onItemSelected(SelectView selectView, int position, String item) {
+                    mGPUFreq.set2dMaxFreq(mGPUFreq.get2dAvailableFreqs().get(position), getActivity());
+                }
+            });
 
             freqCard.addItem(max2dFreq);
         }
@@ -110,8 +114,12 @@ public class GPUFragment extends RecyclerViewFragment {
             maxFreq.setSummary(getString(R.string.gpu_max_freq_summary));
             maxFreq.setItems(mGPUFreq.getAdjustedFreqs(getActivity()));
             maxFreq.setItem((mGPUFreq.getMaxFreq() / mGPUFreq.getMaxFreqOffset()) + getString(R.string.mhz));
-            maxFreq.setOnItemSelected((selectView, position, item)
-                    -> mGPUFreq.setMaxFreq(mGPUFreq.getAvailableFreqs().get(position), getActivity()));
+            maxFreq.setOnItemSelected(new SelectView.OnItemSelected() {
+                @Override
+                public void onItemSelected(SelectView selectView, int position, String item) {
+                    mGPUFreq.setMaxFreq(mGPUFreq.getAvailableFreqs().get(position), getActivity());
+                }
+            });
 
             freqCard.addItem(maxFreq);
         }
@@ -122,8 +130,12 @@ public class GPUFragment extends RecyclerViewFragment {
             minFreq.setSummary(getString(R.string.gpu_min_freq_summary));
             minFreq.setItems(mGPUFreq.getAdjustedFreqs(getActivity()));
             minFreq.setItem((mGPUFreq.getMinFreq() / mGPUFreq.getMinFreqOffset()) + getString(R.string.mhz));
-            minFreq.setOnItemSelected((selectView, position, item)
-                    -> mGPUFreq.setMinFreq(mGPUFreq.getAvailableFreqs().get(position), getActivity()));
+            minFreq.setOnItemSelected(new SelectView.OnItemSelected() {
+                @Override
+                public void onItemSelected(SelectView selectView, int position, String item) {
+                    mGPUFreq.setMinFreq(mGPUFreq.getAvailableFreqs().get(position), getActivity());
+                }
+            });
 
             freqCard.addItem(minFreq);
         }
@@ -140,8 +152,12 @@ public class GPUFragment extends RecyclerViewFragment {
             governor2d.setSummary(getString(R.string.gpu_2d_governor_summary));
             governor2d.setItems(mGPUFreq.get2dAvailableGovernors());
             governor2d.setItem(mGPUFreq.get2dGovernor());
-            governor2d.setOnItemSelected((selectView, position, item)
-                    -> mGPUFreq.set2dGovernor(item, getActivity()));
+            governor2d.setOnItemSelected(new SelectView.OnItemSelected() {
+                @Override
+                public void onItemSelected(SelectView selectView, int position, String item) {
+                    mGPUFreq.set2dGovernor(item, getActivity());
+                }
+            });
 
             items.add(governor2d);
         }
@@ -152,8 +168,12 @@ public class GPUFragment extends RecyclerViewFragment {
             governor.setSummary(getString(R.string.gpu_governor_summary));
             governor.setItems(mGPUFreq.getAvailableGovernors());
             governor.setItem(mGPUFreq.getGovernor());
-            governor.setOnItemSelected((selectView, position, item)
-                    -> mGPUFreq.setGovernor(item, getActivity()));
+            governor.setOnItemSelected(new SelectView.OnItemSelected() {
+                @Override
+                public void onItemSelected(SelectView selectView, int position, String item) {
+                    mGPUFreq.setGovernor(item, getActivity());
+                }
+            });
 
             items.add(governor);
 
@@ -161,13 +181,16 @@ public class GPUFragment extends RecyclerViewFragment {
                 DescriptionView tunables = new DescriptionView();
                 tunables.setTitle(getString(R.string.gpu_governor_tunables));
                 tunables.setSummary(getString(R.string.governor_tunables_summary));
-                tunables.setOnItemClickListener(item -> {
-                    String governor1 = mGPUFreq.getGovernor();
-                    setForegroundText(governor1);
-                    mGPUGovernorTunableFragment.setError(getString(R.string.tunables_error, governor1));
-                    mGPUGovernorTunableFragment.setPath(mGPUFreq.getTunables(mGPUFreq.getGovernor()),
-                            ApplyOnBootFragment.GPU);
-                    showForeground();
+                tunables.setOnItemClickListener(new RecyclerViewItem.OnItemClickListener() {
+                    @Override
+                    public void onClick(RecyclerViewItem item) {
+                        String governor = mGPUFreq.getGovernor();
+                        setForegroundText(governor);
+                        mGPUGovernorTunableFragment.setError(getString(R.string.tunables_error, governor));
+                        mGPUGovernorTunableFragment.setPath(mGPUFreq.getTunables(mGPUFreq.getGovernor()),
+                                ApplyOnBootFragment.GPU);
+                        showForeground();
+                    }
                 });
 
                 items.add(tunables);
@@ -185,8 +208,12 @@ public class GPUFragment extends RecyclerViewFragment {
             enable.setTitle(getString(R.string.simple_gpu_algorithm));
             enable.setSummary(getString(R.string.simple_gpu_algorithm_summary));
             enable.setChecked(SimpleGPU.isSimpleGpuEnabled());
-            enable.addOnSwitchListener((switchView, isChecked)
-                    -> SimpleGPU.enableSimpleGpu(isChecked, getActivity()));
+            enable.addOnSwitchListener(new SwitchView.OnSwitchListener() {
+                @Override
+                public void onChanged(SwitchView switchView, boolean isChecked) {
+                    SimpleGPU.enableSimpleGpu(isChecked, getActivity());
+                }
+            });
 
             simpleGpu.add(enable);
         }
@@ -247,8 +274,12 @@ public class GPUFragment extends RecyclerViewFragment {
             enable.setTitle(getString(R.string.adreno_idler));
             enable.setSummary(getString(R.string.adreno_idler_summary));
             enable.setChecked(AdrenoIdler.isAdrenoIdlerEnabled());
-            enable.addOnSwitchListener((switchView, isChecked)
-                    -> AdrenoIdler.enableAdrenoIdler(isChecked, getActivity()));
+            enable.addOnSwitchListener(new SwitchView.OnSwitchListener() {
+                @Override
+                public void onChanged(SwitchView switchView, boolean isChecked) {
+                    AdrenoIdler.enableAdrenoIdler(isChecked, getActivity());
+                }
+            });
 
             adrenoIdler.add(enable);
         }

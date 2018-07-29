@@ -210,8 +210,12 @@ public class LEDFragment extends RecyclerViewFragment {
             fade.setTitle(getString(R.string.fade));
             fade.setSummary(getString(R.string.fade_summary));
             fade.setChecked(mLED.isFadeEnabled());
-            fade.addOnSwitchListener((switchView, isChecked)
-                    -> mLED.enableFade(isChecked, getActivity()));
+            fade.addOnSwitchListener(new SwitchView.OnSwitchListener() {
+                @Override
+                public void onChanged(SwitchView switchView, boolean isChecked) {
+                    mLED.enableFade(isChecked, getActivity());
+                }
+            });
 
             items.add(fade);
         }
@@ -224,8 +228,12 @@ public class LEDFragment extends RecyclerViewFragment {
             notificationRampControl.setTitle(getString(R.string.fade_ramp_control));
             notificationRampControl.setSummary(getString(R.string.fade_ramp_control_summary));
             notificationRampControl.setChecked(Sec.isNotificationRampControlEnabled());
-            notificationRampControl.addOnSwitchListener((switchView, isChecked)
-                    -> Sec.enableNotificationRampControl(isChecked, getActivity()));
+            notificationRampControl.addOnSwitchListener(new SwitchView.OnSwitchListener() {
+                @Override
+                public void onChanged(SwitchView switchView, boolean isChecked) {
+                    Sec.enableNotificationRampControl(isChecked, getActivity());
+                }
+            });
 
             fadeCard.addItem(notificationRampControl);
         }
@@ -284,8 +292,12 @@ public class LEDFragment extends RecyclerViewFragment {
         test.setTitle(getString(R.string.test));
         test.setSummary(getString(R.string.led_test_summary));
         test.setChecked(Sec.isTestingPattern());
-        test.addOnSwitchListener((switchView, isChecked)
-                -> Sec.testPattern(isChecked));
+        test.addOnSwitchListener(new SwitchView.OnSwitchListener() {
+            @Override
+            public void onChanged(SwitchView switchView, boolean isChecked) {
+                Sec.testPattern(isChecked);
+            }
+        });
 
         items.add(test);
     }

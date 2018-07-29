@@ -68,7 +68,7 @@ public class CPUHotplugFragment extends RecyclerViewFragment {
         mCPUFreq = CPUFreq.getInstance(getActivity());
         mIntelliPlug = IntelliPlug.getInstance();
         mMSMHotplug = MSMHotplug.getInstance();
-        mMBHotplug = MBHotplug.getInstance();
+        mMBHotplug = mMBHotplug.getInstance();
         mCoreCtl = CoreCtl.getInstance();
         addViewPagerFragment(ApplyOnBootFragment.newInstance(this));
     }

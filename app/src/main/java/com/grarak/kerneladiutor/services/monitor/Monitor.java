@@ -32,7 +32,6 @@ import android.os.BatteryManager;
 import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
-import android.os.SystemClock;
 import android.support.annotation.Nullable;
 
 import com.grarak.kerneladiutor.BuildConfig;
@@ -82,12 +81,12 @@ public class Monitor extends Service {
             } else {
                 mCalculating = true;
 
-                long time = SystemClock.elapsedRealtime();
+                long time = System.nanoTime();
                 int level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, 0);
 
                 if (mLevel != 0 && mLevel > level && mTime != 0 && mTime < time && mLevel - level > 0) {
                     long seconds = TimeUnit.SECONDS.convert((time - mTime) / (mLevel - level),
-                            TimeUnit.MILLISECONDS);
+                            TimeUnit.NANOSECONDS);
                     if (seconds >= 100) {
                         mTimes.add(seconds);
 
@@ -121,44 +120,47 @@ public class Monitor extends Service {
     private void postCreate(final Long[] times) {
         if (mLevel < 15 || !Prefs.getBoolean("data_sharing", true, this)) return;
 
-        new Thread(() -> {
-            try {
-                JSONObject data = new JSONObject();
-                data.put("android_id", Utils.getAndroidId(Monitor.this));
-                data.put("android_version", Device.getVersion());
-                data.put("kernel_version", Device.getKernelVersion(true, false));
-                data.put("app_version", BuildConfig.VERSION_NAME);
-                data.put("board", Device.getBoard());
-                data.put("model", Device.getModel());
-                data.put("vendor", Device.getVendor());
-                data.put("cpuinfo", Utils.encodeString(Device.CPUInfo.getInstance().getCpuInfo()));
-                data.put("fingerprint", Device.getFingerprint());
-
-                JSONArray commands = new JSONArray();
-                Settings settings = new Settings(Monitor.this);
-                for (Settings.SettingsItem item : settings.getAllSettings()) {
-                    commands.put(item.getSetting());
-                }
-                data.put("commands", commands);
-
-                JSONArray batteryTimes = new JSONArray();
-                for (long time : times) {
-                    batteryTimes.put(time);
-                }
-                data.put("times", batteryTimes);
-
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
                 try {
-                    long time = 0;
-                    for (int i = 0; i < 100000; i++) {
-                        time += Utils.computeSHAHash(Utils.getRandomString(16));
-                    }
-                    data.put("cpu", time);
-                } catch (Exception ignored) {
-                }
+                    JSONObject data = new JSONObject();
+                    data.put("android_id", Utils.getAndroidId(Monitor.this));
+                    data.put("android_version", Device.getVersion());
+                    data.put("kernel_version", Device.getKernelVersion(true, false));
+                    data.put("app_version", BuildConfig.VERSION_NAME);
+                    data.put("board", Device.getBoard());
+                    data.put("model", Device.getModel());
+                    data.put("vendor", Device.getVendor());
+                    data.put("cpuinfo", Utils.encodeString(Device.CPUInfo.getInstance().getCpuInfo()));
+                    data.put("fingerprint", Device.getFingerprint());
 
-                mServerCreateDevice.postDeviceCreate(data);
-            } catch (JSONException e) {
-                e.printStackTrace();
+                    JSONArray commands = new JSONArray();
+                    Settings settings = new Settings(Monitor.this);
+                    for (Settings.SettingsItem item : settings.getAllSettings()) {
+                        commands.put(item.getSetting());
+                    }
+                    data.put("commands", commands);
+
+                    JSONArray batteryTimes = new JSONArray();
+                    for (long time : times) {
+                        batteryTimes.put(time);
+                    }
+                    data.put("times", batteryTimes);
+
+                    try {
+                        long time = 0;
+                        for (int i = 0; i < 100000; i++) {
+                            time += Utils.computeSHAHash(Utils.getRandomString(16));
+                        }
+                        data.put("cpu", time);
+                    } catch (Exception ignored) {
+                    }
+
+                    mServerCreateDevice.postDeviceCreate(data);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
             }
         }).start();
     }

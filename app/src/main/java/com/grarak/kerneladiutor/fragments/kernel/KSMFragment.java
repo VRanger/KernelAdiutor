@@ -57,8 +57,12 @@ public class KSMFragment extends RecyclerViewFragment {
             enable.setTitle(getString(R.string.ksm));
             enable.setSummary(getString(R.string.ksm_summary));
             enable.setChecked(mKSM.isEnabled());
-            enable.addOnSwitchListener((switchView, isChecked)
-                    -> mKSM.enableKsm(isChecked, getActivity()));
+            enable.addOnSwitchListener(new SwitchView.OnSwitchListener() {
+                @Override
+                public void onChanged(SwitchView switchView, boolean isChecked) {
+                    mKSM.enableKsm(isChecked, getActivity());
+                }
+            });
 
             items.add(enable);
         }
@@ -68,8 +72,12 @@ public class KSMFragment extends RecyclerViewFragment {
             deferredTimer.setTitle(getString(R.string.deferred_timer));
             deferredTimer.setSummary(getString(R.string.deferred_timer_summary));
             deferredTimer.setChecked(mKSM.isDeferredTimerEnabled());
-            deferredTimer.addOnSwitchListener((switchView, isChecked)
-                    -> mKSM.enableDeferredTimer(isChecked, getActivity()));
+            deferredTimer.addOnSwitchListener(new SwitchView.OnSwitchListener() {
+                @Override
+                public void onChanged(SwitchView switchView, boolean isChecked) {
+                    mKSM.enableDeferredTimer(isChecked, getActivity());
+                }
+            });
 
             items.add(deferredTimer);
         }

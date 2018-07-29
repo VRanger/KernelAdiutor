@@ -63,10 +63,13 @@ public class VMFragment extends RecyclerViewFragment {
                 vm.setInputType(InputType.TYPE_CLASS_NUMBER);
 
                 final int position = i;
-                vm.setOnGenericValueListener((genericSelectView, value) -> {
-                    VM.setValue(value, position, getActivity());
-                    genericSelectView.setValue(value);
-                    refreshVMs();
+                vm.setOnGenericValueListener(new GenericSelectView.OnGenericValueListener() {
+                    @Override
+                    public void onGenericValueSelected(GenericSelectView genericSelectView, String value) {
+                        VM.setValue(value, position, getActivity());
+                        genericSelectView.setValue(value);
+                        refreshVMs();
+                    }
                 });
 
                 items.add(vm);
@@ -115,8 +118,12 @@ public class VMFragment extends RecyclerViewFragment {
             zswap.setTitle(getString(R.string.zswap));
             zswap.setSummary(getString(R.string.zswap_summary));
             zswap.setChecked(ZSwap.isEnabled());
-            zswap.addOnSwitchListener((switchView, isChecked)
-                    -> ZSwap.enable(isChecked, getActivity()));
+            zswap.addOnSwitchListener(new SwitchView.OnSwitchListener() {
+                @Override
+                public void onChanged(SwitchView switchView, boolean isChecked) {
+                    ZSwap.enable(isChecked, getActivity());
+                }
+            });
 
             zswapCard.addItem(zswap);
         }
@@ -168,10 +175,13 @@ public class VMFragment extends RecyclerViewFragment {
     }
 
     private void refreshVMs() {
-        getHandler().postDelayed(() -> {
-            for (int i = 0; i < mVMs.size(); i++) {
-                mVMs.get(i).setValue(VM.getValue(i));
-                mVMs.get(i).setValueRaw(mVMs.get(i).getValue());
+        getHandler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                for (int i = 0; i < mVMs.size(); i++) {
+                    mVMs.get(i).setValue(VM.getValue(i));
+                    mVMs.get(i).setValueRaw(mVMs.get(i).getValue());
+                }
             }
         }, 250);
     }
